@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Кот-Симулятор 🐱</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- Загрузочный экран -->
+  <div id="splash" class="splash">
+    <div class="splash-cat">🐱</div>
+    <h1 class="splash-title">Кот-Симулятор</h1>
+    <p class="splash-sub">нажми, чтобы начать игру</p>
+    <button id="startBtn" class="btn btn-primary btn-big">▶ Играть</button>
+  </div>
+
+  <!-- Игровое поле -->
+  <div id="game" class="game hidden">
+    <!-- Сцена (Canvas) -->
+    <canvas id="scene"></canvas>
+
+    <!-- Верхняя панель: имя + шкалы -->
+    <header class="hud-top glass">
+      <div class="cat-name-box">
+        <span class="paw">🐾</span>
+        <span id="catName" class="cat-name">Барсик</span>
+        <button id="renameBtn" class="icon-btn" title="Сменить имя">✏️</button>
+      </div>
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-ico">🍗</span>
+          <div class="bar"><div id="barHunger" class="bar-fill hunger"></div></div>
+          <span class="stat-label">Сытость</span>
+        </div>
+        <div class="stat">
+          <span class="stat-ico">⚡</span>
+          <div class="bar"><div id="barEnergy" class="bar-fill energy"></div></div>
+          <span class="stat-label">Энергия</span>
+        </div>
+        <div class="stat">
+          <span class="stat-ico">❤️</span>
+          <div class="bar"><div id="barHappy" class="bar-fill happy"></div></div>
+          <span class="stat-label">Счастье</span>
+        </div>
+      </div>
+      <div class="score-box">
+        <span>🐟 <b id="fishScore">0</b></span>
+        <span>🐭 <b id="mouseScore">0</b></span>
+      </div>
+    </header>
+
+    <!-- Облачко статуса над котом -->
+    <div id="statusBubble" class="status-bubble hidden"></div>
+
+    <!-- Левая панель: локации -->
+    <aside class="locations glass">
+      <button class="loc-btn active" data-loc="room" title="Комната">🛏️</button>
+      <button class="loc-btn" data-loc="garden" title="Сад">🌳</button>
+      <button class="loc-btn" data-loc="lake" title="Озеро">🎣</button>
+    </aside>
+
+    <!-- Нижняя панель действий -->
+    <footer class="hud-bottom glass">
+      <button class="act-btn" data-act="idle"><span class="k">1</span><span class="e">😺</span><span class="t">Стоять</span></button>
+      <button class="act-btn" data-act="walk"><span class="k">2</span><span class="e">🚶</span><span class="t">Гулять</span></button>
+      <button class="act-btn" data-act="jump"><span class="k">3</span><span class="e">⬆️</span><span class="t">Прыжок</span></button>
+      <button class="act-btn" data-act="dance"><span class="k">4</span><span class="e">💃</span><span class="t">Танец</span></button>
+      <button class="act-btn" data-act="sneak"><span class="k">5</span><span class="e">🐾</span><span class="t">Красться</span></button>
+      <button class="act-btn" data-act="sleep"><span class="k">6</span><span class="e">😴</span><span class="t">Спать</span></button>
+      <button class="act-btn" data-act="eat"><span class="k">7</span><span class="e">🍽️</span><span class="t">Кушать</span></button>
+      <button class="act-btn" data-act="hunt"><span class="k">8</span><span class="e">🎯</span><span class="t">Охота</span></button>
+      <button class="act-btn customize" data-act="customize"><span class="e">🎨</span><span class="t">Внешность</span></button>
+    </footer>
+
+    <!-- Подсказка по управлению -->
+    <div class="hint glass">
+      <b>Управление:</b> ← → ходить · <b>Shift</b> бежать · <b>Пробел</b> прыжок · <b>1–8</b> действия
+    </div>
+
+    <!-- Панель кастомизации -->
+    <div id="customizePanel" class="panel glass hidden">
+      <div class="panel-head">
+        <h2>🎨 Внешность кота</h2>
+        <button id="closeCustomize" class="icon-btn">✖</button>
+      </div>
+      <div class="panel-body">
+        <label class="field">
+          <span>Имя</span>
+          <input id="nameInput" type="text" maxlength="14" placeholder="Имя кота" />
+        </label>
+
+        <div class="field">
+          <span>Цвет шерсти</span>
+          <div id="furSwatches" class="swatches"></div>
+          <input id="furPicker" type="color" value="#f4a14e" />
+        </div>
+
+        <div class="field">
+          <span>Цвет пятен / живота</span>
+          <div id="bellySwatches" class="swatches"></div>
+          <input id="bellyPicker" type="color" value="#fff6ec" />
+        </div>
+
+        <div class="field">
+          <span>Цвет глаз</span>
+          <div id="eyeSwatches" class="swatches"></div>
+          <input id="eyePicker" type="color" value="#6fd66f" />
+        </div>
+
+        <div class="field">
+          <span>Узор</span>
+          <div id="patternBtns" class="pattern-btns">
+            <button data-pattern="solid" class="active">Однотонный</button>
+            <button data-pattern="tabby">Полоски</button>
+            <button data-pattern="patches">Пятна</button>
+            <button data-pattern="tuxedo">Смокинг</button>
+          </div>
+        </div>
+
+        <div class="field preview-field">
+          <span>Превью</span>
+          <canvas id="previewCanvas" width="220" height="200"></canvas>
+        </div>
+
+        <button id="randomLook" class="btn">🎲 Случайно</button>
+      </div>
+    </div>
+
+    <!-- Рыбалка (оверлей мини-игры) -->
+    <div id="fishingOverlay" class="fishing-overlay hidden">
+      <canvas id="fishingCanvas"></canvas>
+      <div class="fishing-ui glass">
+        <span>🎣 Рыбалка</span>
+        <span>Время: <b id="fishTimer">60</b>с</span>
+        <span>Улов: <b id="fishCatch">0</b></span>
+        <button id="exitFishing" class="btn">Выйти</button>
+      </div>
+      <div class="fishing-hint glass">← → двигать удочку · <b>Пробел</b> / клик — подсечь рыбу под крючком</div>
+    </div>
+
+    <!-- Тост-уведомление -->
+    <div id="toast" class="toast hidden"></div>
+  </div>
+
+  <!-- Скрипты (ES6+ классы, загрузка по порядку зависимостей) -->
+  <script src="js/utils.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/cat.js"></script>
+  <script src="js/world.js"></script>
+  <script src="js/fishing.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
